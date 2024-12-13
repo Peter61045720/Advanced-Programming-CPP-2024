@@ -339,7 +339,6 @@ struct nth_sum_ct<0> {
     static const unsigned value = 0;
 };
 
-
 #endif
 
 #ifdef FUNCTION_OBJECT
@@ -472,7 +471,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& os, const EntryBook& eb) {
         for (size_t i = 0; i < eb.n; i++) {
-            os << eb.entries[i] << std::endl;
+            os << " " << eb.entries[i] << std::endl;
         }
         return os;
     }
@@ -482,6 +481,7 @@ public:
         Entry* e_ptr;
         Entry* end;
         unsigned selected_mark;
+
         iterator(Entry* e_ptr, Entry* end, unsigned s_m) : e_ptr(e_ptr), end(end), selected_mark(s_m) {}
 
         friend class EntryBook;
@@ -533,6 +533,121 @@ public:
 
     iterator end() {
         return iterator(entries + n, entries + n, selected_mark);
+    }
+};
+
+template<size_t N>
+class numbers {
+private:
+    int n_arr[N];
+    size_t n;
+
+public:
+    numbers(int* nums = nullptr, size_t n = 0) : n(n) {
+        if (n > N) {
+            throw std::out_of_range("numbers(int*, size_t), " + std::to_string(n));
+        }
+        if (nums) {
+            for (size_t i = 0; i < n; i++) {
+                n_arr[i] = nums[i];
+            }
+        }
+    }
+
+    numbers(const std::vector<int>& nums, size_t n = 0) : n(n) {
+        if (n > N) {
+            throw std::out_of_range("numbers(const std::vector<int>&, size_t), " + std::to_string(n));
+        }
+        if (!nums.empty()) {
+            for (auto it = nums.begin(); it != nums.end(); it++) {
+                operator+=(*it);
+            }
+        }
+    }
+
+    size_t get_count() const {
+        return n;
+    }
+
+    numbers& operator+=(const int number) {
+        if (n >= N) {
+            std::cout << n << std::endl;
+            throw std::out_of_range("operator+=, " + std::to_string(number));
+        }
+        n_arr[n++] = number;
+        return *this;
+    }
+
+    const int operator[](size_t idx) const {
+        if (idx >= n) {
+            throw std::out_of_range("operator[], " + std::to_string(idx));
+        }
+        return n_arr[idx];
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const numbers& ns) {
+        for (size_t i = 0; i < ns.n; i++) {
+            os << " " << ns.n_arr[i] << std::endl;
+        }
+        return os;
+    }
+
+    class iterator {
+    private:
+        int* n_ptr;
+        int* end;
+
+        iterator(int* ptr, int* e) : n_ptr(ptr), end(e) {}
+
+        friend class numbers;
+
+    public:
+        iterator() = default;
+
+        iterator(const iterator& it) : n_ptr(it.n_ptr), end(it.end) {}
+
+        bool operator==(const iterator& it) const {
+            return n_ptr == it.n_ptr && end == it.end;
+        }
+
+        bool operator!=(const iterator& it) const {
+            return !operator==(it);
+        }
+
+        int operator*() {
+            return *n_ptr;
+        }
+
+        // int* operator->() {
+        //     return n_ptr;
+        // }
+
+        iterator& operator++() {
+            n_ptr++;
+            while (*n_ptr % 2 != 0 && n_ptr != end) {
+                n_ptr++;
+            }
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator temp(*this);
+            operator++();
+            return temp;
+        }
+    };
+
+    iterator begin() {
+        int* start = n_arr;
+        int* end = n_arr + n;
+        while (*start % 2 != 0 && start != end) {
+            start++;
+        }
+        return iterator(start, end);
+    }
+
+    iterator end() {
+        return iterator(n_arr + n, n_arr + n);
     }
 };
 
@@ -874,6 +989,56 @@ void test_iterator() {
     }
 
     std::cout << "--------------------" << std::endl;
+
+    int input_numbers[10] = { 1, 5, 6, 12, 7, 20, 9, 11, 30, 55 };
+
+    numbers<20> m_numbers(input_numbers, 10);
+    m_numbers += 40;
+    m_numbers += 43;
+
+    std::cout << "All numbers:" << std::endl;
+    std::cout << m_numbers;
+
+    std::cout << "Count:" << std::endl;
+    std::cout << " " << m_numbers.get_count() << std::endl;
+
+    std::cout << "Without iterator:" << std::endl;
+    for (size_t i = 0; i < m_numbers.get_count(); i++) {
+        std::cout << " " << m_numbers[i] << std::endl;
+    }
+
+    std::cout << "With iterator:" << std::endl;
+    for (const auto number : m_numbers) {
+        std::cout << " " << number << std::endl;
+    }
+
+    std::cout << "With iterator (another loop):" << std::endl;
+    for (auto it = m_numbers.begin(); it != m_numbers.end(); it++) {
+        std::cout << " " << *it << std::endl;
+    }
+
+    std::cout << "--------------------" << std::endl;
+
+    std::vector<int> number_vector = { 1, 3, 5, 7, 9, 11 };
+    numbers<7> m_numbers_vec(number_vector);
+
+    std::cout << "All numbers:" << std::endl;
+    std::cout << m_numbers_vec;
+
+    std::cout << "Count:" << std::endl;
+    std::cout << " " << m_numbers_vec.get_count() << std::endl;
+
+    std::cout << "With iterator:" << std::endl;
+    for (const auto number : m_numbers_vec) {
+        std::cout << " " << number << std::endl;
+    }
+
+    m_numbers_vec += 20;
+
+    std::cout << "With iterator (after adding 20):" << std::endl;
+    for (auto it = m_numbers_vec.begin(); it != m_numbers_vec.end(); it++) {
+        std::cout << " " << *it << std::endl;
+    }
 }
 #endif
 
