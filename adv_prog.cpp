@@ -168,6 +168,14 @@ public:
         return vec[idx];
     }
 
+    typename std::vector<T>::iterator begin() {
+        return vec.begin();
+    }
+
+    typename std::vector<T>::iterator end() {
+        return vec.end();
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const my_vector& m_vec) {
         for (size_t i = 0; i < m_vec.n; i++) {
             os << m_vec[i] << std::endl;
@@ -779,7 +787,10 @@ void test_class_template() {
     vec_str += "Mango";
     vec_str += "Kiwi";
     // vec_str += "Meggy";
-    std::cout << vec_str << std::endl;
+    std::cout << "Using iterators:" << std::endl;
+    for (const auto& str : vec_str) {
+        std::cout << " " << str << std::endl;
+    }
 
     std::cout << "--------------------" << std::endl;
 }
