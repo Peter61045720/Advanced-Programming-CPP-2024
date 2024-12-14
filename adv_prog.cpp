@@ -16,7 +16,7 @@
 // #define METAPROGRAMMING
 // #define FUNCTION_OBJECT
 // #define STL
-// #define ITERATOR
+#define ITERATOR
 
 #define TESTS
 
@@ -659,6 +659,197 @@ public:
     }
 };
 
+template<typename T>
+struct Node {
+    T data;
+    Node<T>* next;
+
+    Node(const T& data) : data(data), next(nullptr) {}
+};
+
+template<typename T>
+class linked_list {
+private:
+    Node<T>* head;
+    Node<T>* tail;
+
+public:
+    linked_list() : head(nullptr), tail(nullptr) {}
+
+    ~linked_list() {
+        Node<T>* current = head;
+
+        while (current != nullptr) {
+            Node<T>* next_node = current->next;
+            delete current;
+            current = next_node;
+        }
+
+        head = nullptr;
+        tail = nullptr;
+
+        std::cout << "~destructor called... " << std::endl;
+        if (empty()) {
+            std::cout << "  and the list is empty" << std::endl;
+        }
+    }
+
+    T& front() const {
+        return head->data;
+    }
+
+    T& back() const {
+        return tail->data;
+    }
+
+    size_t size() const {
+        size_t count = 0;
+        Node<T>* current = head;
+
+        while (current != nullptr) {
+            current = current->next;
+            count++;
+        }
+
+        return count;
+    }
+
+    bool empty() const {
+        return head == nullptr && tail == nullptr;
+    }
+
+    void push_front(const T& value) {
+        Node<T>* node_to_add = new Node<T>(value);
+
+        if (head == nullptr) {
+            head = node_to_add;
+            tail = node_to_add;
+        } else {
+            node_to_add->next = head;
+            head = node_to_add;
+        }
+    }
+
+    void push_back(const T& value) {
+        Node<T>* node_to_add = new Node<T>(value);
+
+        if (head == nullptr) {
+            head = node_to_add;
+            tail = node_to_add;
+        } else {
+            tail->next = node_to_add;
+            tail = node_to_add;
+        }
+    }
+
+    T pop_front() {
+        if (empty()) {
+            throw std::runtime_error("Cannot pop from an empty list");
+        }
+
+        Node<T>* node_to_remove = head;
+        T value = head->data;
+        head = head->next;
+
+        if (head == nullptr) {
+            tail = nullptr;
+        }
+
+        delete node_to_remove;
+        return value;
+    }
+
+    T pop_back() {
+        if (empty()) {
+            throw std::runtime_error("Cannot pop from an empty list");
+        }
+
+        if (head == tail) {
+            T value = head->data;
+            delete head;
+            head = nullptr;
+            tail = nullptr;
+
+            return value;
+        }
+
+        Node<T>* current = head;
+        while (current->next != tail) {
+            current = current->next;
+        }
+
+        T value = tail->data;
+        delete tail;         
+        tail = current;      
+        tail->next = nullptr;
+
+        return value;
+    }
+
+    const T& operator[](size_t idx) const {
+        if (idx >= size()) {
+            throw std::out_of_range("Index out of range: " + std::to_string(idx));
+        }
+
+        Node<T>* current = head;
+
+        for (size_t i = 0; i < idx; i++) {
+            current = current->next;
+        }
+
+        return current->data;
+    }
+
+    class iterator {
+    private:
+        Node<T>* n_ptr;
+
+        iterator(Node<T>* n) : n_ptr(n) {}
+
+        friend class linked_list;
+
+    public:
+        iterator() = default;
+
+        iterator(const iterator& it) : n_ptr(it.n_ptr) {}
+
+        bool operator==(const iterator& it) const {
+            return n_ptr == it.n_ptr;
+        }
+
+        bool operator!=(const iterator& it) const {
+            return !operator==(it);
+        }
+
+        T& operator*() {
+            return n_ptr->data;
+        }
+
+        T* operator->() {
+            return &n_ptr->data;
+        }
+
+        iterator& operator++() {
+            n_ptr = n_ptr->next;
+            return *this;
+        }
+
+        iterator operator++(int) {
+            iterator temp(*this);
+            operator++();
+            return temp;
+        }
+    };
+
+    iterator begin() {
+        return iterator(head);
+    }
+
+    iterator end() {
+        return iterator(nullptr);
+    }
+};
+
 #endif
 
 #ifdef TESTS
@@ -1050,6 +1241,55 @@ void test_iterator() {
     for (auto it = m_numbers_vec.begin(); it != m_numbers_vec.end(); it++) {
         std::cout << " " << *it << std::endl;
     }
+
+    std::cout << "--------------------" << std::endl;
+
+    linked_list<int> list;
+
+    for (int i = 0; i < 12; i++) {
+        list.push_back(i * 7 + i % 2);
+    }
+
+    std::cout << "Head: " << list.front() << std::endl;
+    std::cout << "Tail: " << list.back() << std::endl;
+    std::cout << "With iterator: " << std::endl;
+    for (const auto& elem : list) {
+        std::cout << " " << elem << std::endl;
+    }
+
+    list.push_front(-7);
+    list.push_front(-16);
+    
+    std::cout << "Head: " << list.front() << std::endl;
+    std::cout << "Tail: " << list.back() << std::endl;
+    std::cout << "After insertion (using operator[]): " << std::endl;
+    for (size_t i = 0; i < list.size(); i++) {
+        std::cout << " " << list[i] << std::endl;
+    }
+
+    std::cout << "Pop 5 items from the front: " << std::endl;
+    for (int i = 0; i < 5; i++) {
+        std::cout << " " << list.pop_front() << "\tremoved" << std::endl;
+    }
+
+    std::cout << "Pop 7 items from the back: " << std::endl;
+    for (int i = 0; i < 7; i++) {
+        std::cout << " " << list.pop_back() << "\tremoved" << std::endl;
+    }
+
+    std::cout << "Items remaining: " << std::endl;
+    for (const auto& elem : list) {
+        std::cout << " " << elem << std::endl;
+    }
+
+    std::cout << "Pop the last " << list.size() <<" items: ";
+    auto item1 = list.pop_front();
+    auto item2 = list.pop_back();
+    std::cout << "[" << item1 << ", " << item2 << "]" << std::endl;
+
+    std::cout << "Is the list empty? " << (list.empty() ? "Yes" : "No") << std::endl;
+    // list.pop_front();
+    // list.pop_back();
 }
 #endif
 
