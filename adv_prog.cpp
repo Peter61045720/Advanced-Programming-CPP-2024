@@ -7,15 +7,15 @@
 
 // Hasznalj kommenteket a #define-ok elott kodblokkok inaktivalasahoz!
 
-// #define MANIPULATOR
-// #define EFFECTOR
-// #define FUNCTION_TEMPLATE
-// #define CLASS_TEMPLATE
-// #define TRAITS
+#define MANIPULATOR
+#define EFFECTOR
+#define FUNCTION_TEMPLATE
+#define CLASS_TEMPLATE
+#define TRAITS
 
-// #define METAPROGRAMMING
-// #define FUNCTION_OBJECT
-// #define STL
+#define METAPROGRAMMING
+#define FUNCTION_OBJECT
+#define STL
 #define ITERATOR
 
 #define TESTS
@@ -1259,7 +1259,7 @@ void test_iterator() {
 
     list.push_front(-7);
     list.push_front(-16);
-    
+
     std::cout << "Head: " << list.front() << std::endl;
     std::cout << "Tail: " << list.back() << std::endl;
     std::cout << "After insertion (using operator[]): " << std::endl;
